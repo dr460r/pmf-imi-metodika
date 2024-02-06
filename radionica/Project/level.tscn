@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://dtu4ap7h0mny1"]
+
+[ext_resource type="Script" path="res://level.gd" id="1_rjo1q"]
+[ext_resource type="Texture2D" uid="uid://bd2wvc4wxfmye" path="res://space.png" id="2_nvxe1"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_rjo1q")
+
+[node name="AsteroidTimer" type="Timer" parent="."]
+wait_time = 0.8
+
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 201.0
+offset_bottom = 301.0
+texture = ExtResource("2_nvxe1")
+stretch_mode = 1
+
+[node name="StartLabel" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 124.0
+offset_right = 178.0
+offset_bottom = 147.0
+text = "Press SPACE to start!"
+
+[node name="ScoreLabel" type="Label" parent="."]
+offset_left = 13.0
+offset_top = 8.0
+offset_right = 74.0
+offset_bottom = 31.0
+text = "Score: 0"
+
+[connection signal="timeout" from="AsteroidTimer" to="." method="spawn_asteroid"]
