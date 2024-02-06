@@ -138,15 +138,28 @@ Nakon što smo promenili podešavanja možemo videti da se brod iscrtava bez ika
 
 Prvo ćemo u sceni _level_ dodati scenu _ship_ kao _Node_ koji treba biti instanciran:
 
-![Project Settings](img/15-ship-into-level.png)
+![Run Project](img/15-ship-into-level.png)
 
 Kada kliknemo na dugme _Play_ u gornjem desnom uglu (shortcut `F5`) prvo ćemo dobiti pitanje okju scenu _engine_ treba da koristi prilikom pokretanja igrice. Pošto je trenutno otvorena _level_ scena možemo izabrati _Select Current_. U podešavanjima projekta se ova podrazumevana scena može promeniti takođe.
 
-![Project Settings](img/16-default-scene.png)
+![Run Project](img/16-default-scene.png)
 
-![Project Settings](img/16-default-scene-2.png)
+![Run Project](img/16-default-scene-2.png)
 
+## Kreiranje preostalih scena
 
+Na isti način kao što smo kreirali _ship_ scenu kreiraćemo _rocket_ i _asteroid_ scene, sa istom strukturom _Node_-ova, root je _Node2D_ sa jednim _child_ čvorom _Sprite2D_ kome se postavlja odgovarajuća slika. Takođe ćemo sliku i scenu za raketu i asteroid čuvati u istoimenim folderima, kao za brod.
 
+Na kraju, kako bismo stekli utisak kako će igrica izgledati u _level_ možemo postaviti ove scene:
 
+![Run Project](img/17-kompozicija%20gotova.png)
 
+## Skripte - Proširivanje Node-ova
+
+Skripta je fajl sa programskim kodom koji dodaje svojstva i funkcije čvorovima za koje je zakačena. U _Godot_-u možemo pisati kod u programskim jezicima _C#_ i _GDScript_. Mi ćemo koristiti GDScript, kako je to primarni način za pisanje skripti, sa najviše podrške, a i za nas trenutno najjednostavniji.
+
+Za svaki od glavnih elemenata (_Level_, _Ship_, _Rocket_, _Asteroid_) kreiraćemo po jednu skriptu koja će proširiti njihovo ponašanje.
+
+### Asteroid skripta
+
+![Scripting](img/)
