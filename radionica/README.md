@@ -1,4 +1,4 @@
-# Radionica - _Space Shooter_ igrica u Godot-u
+# Radionica - _Space Shooter_ igrica u Godot-u __(WORK IN PROGRESS)__
 
 ## Preuzimanje Godot-a
 
@@ -71,5 +71,82 @@ Projekat ćemo organizovati tako da se sastoji iz 4 scene, gde svaka opisuje kak
 ![Game Elements](img/11-game-elements.png)
 
 U nastavku ćemo realizovati sve elemente igrice.
+
+## Ship
+
+Brod će biti predstavljen jednim čvorom tipa _Node2D_ sa svojim _child_ čvorovima koji će obezbediti potrebne funkcionalnosti. Prvo ćemo kreirati novu scenu koja će predstavljati recept za kreiranje broda:
+
+![Ship Scene](img/12-new-scene-ship-01.png)
+
+![Ship Scene](img/12-new-scene-ship-02.png)
+
+Zatim, kako bismo se bolje snašli unutar strukture fajlova projekta kreiraćemo novi folder sa svaki od glavnih elemenata igrice. Sada kreiramo folder `ship`:
+
+![Ship Scene](img/13-ship-folder-01.png)
+
+Zatim scenu broda možemo sačuvati u tom folderu:
+
+![Ship Scene](img/12-new-scene-ship-03.png)
+
+Kao što smo u primeru sa početka sceni _level_ dodali čvor sa slikom, tako ćemo i sceni _ship_ dodati _child_ _Node_ tipa _Sprite2D_ kako bismo prikazali brod. Ali prvo da u fajlove projekta dodamo sliku broda koju ćemo koristiti:
+
+![Ship Scene](img/13-ship-folder-02.png)
+
+Sada na isti način kako smo u sceni _level_ povezali sliku ikonice i _Sprite2D_ čvor, tako ćemo uraditi i ovde sa slikom `ship.png`. Nakon toga ćemo moći da vidimo brod u _ship_ sceni, ali ćemo primetiti i dva problema koja ćemo pokušati da rešimo.
+
+Prvo možemo primetiti da je brod dosta sitan u odnosu na podrazumevanu veličinu prozora igrice:
+
+![Project Settings](img/14-pixel-settings-01.png)
+
+Drugi problem je to što zbog male rezolucije slike (jer je igrica u _pixel art_ stilu, svaki pixel je od značaja) ona izgleda zamućeno:
+
+![Project Settings](img/14-pixel-settings-02.png)
+
+Oba problema nastaju zbog podrazumevanih podešavanja projekta koja odgovaraju za većinu novih projekata, ali u našem slučaju ih valja promeniti.
+
+### Project Settings
+
+Kako bismo menjali podešavanja projekta otvorićemo prozor za to:
+
+![Project Settings](img/14-pixel-settings-03.png)
+
+Prvo ćemo podesiti veličinu prozora igrice. Date vrednosti su izražene u pixelima, a mi ćemo ih vrednosti na sledeće vrednosti:
+
+![Project Settings](img/14-pixel-settings-04.png)
+
+Ovako malu rezoluciju postavljamo kako bi igrica bila iscrtana u rezoluciji koja odgovara slikama igre, jer su i one u maloj rezoluciji, i želimo da se prilikom igranja vidi svaki pixel. 
+
+Ali kako ne bi i sam prozor bio mali podesićemo da se przor raširi na veličinu celobrojnog umnoška ove male rezolucije i da zadrži proporcije visine i širine prozora:
+
+![Project Settings](img/14-pixel-settings-04-1.png)
+
+![Project Settings](img/14-pixel-settings-05.png)
+
+![Project Settings](img/14-pixel-settings-06.png)
+
+Ovime smo rešili pitanje veličine ekrana i rezolucije. Ostalo nam je još da popravimo zamućenje slike. To ćemo uraditi tako što promenimo tip filtriranja teksutra:
+
+![Project Settings](img/14-pixel-settings-07.png)
+
+Takođe ćemo podesiti da se pozicija _Node_-ova u toku kretanja i mirovanja uvek prilagodi tako da se pixeli slika uvek poklope sa pixelima ekrana, kako bismo dobili najpreciznije iscrtavanje:
+
+![Project Settings](img/14-pixel-settings-08.png)
+
+## Pokretanje projekta
+
+Nakon što smo promenili podešavanja možemo videti da se brod iscrtava bez ikakvih nepravilnosti. Vreme je da pokrenemo igricu i vidimo kako trenutno izglda.
+
+Prvo ćemo u sceni _level_ dodati scenu _ship_ kao _Node_ koji treba biti instanciran:
+
+![Project Settings](img/15-ship-into-level.png)
+
+Kada kliknemo na dugme _Play_ u gornjem desnom uglu (shortcut `F5`) prvo ćemo dobiti pitanje okju scenu _engine_ treba da koristi prilikom pokretanja igrice. Pošto je trenutno otvorena _level_ scena možemo izabrati _Select Current_. U podešavanjima projekta se ova podrazumevana scena može promeniti takođe.
+
+![Project Settings](img/16-default-scene.png)
+
+![Project Settings](img/16-default-scene-2.png)
+
+
+
 
 
