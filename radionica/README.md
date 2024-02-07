@@ -162,7 +162,7 @@ Za svaki od glavnih elemenata (_Level_, _Ship_, _Rocket_, _Asteroid_) kreiraćem
 
 ### Asteroid skripta
 
-U _asteroid_ sceni na sledeći način možemo kreirati skriptu:
+Počećemo od skripte za _asteroid_. U sceni asteroida na sledeći način možemo kreirati skriptu i zakačiti je na njen _root_ čvor:
 
 ![Scripting](img/18-asteroid-script-01.png)
 
@@ -172,8 +172,6 @@ Sačuvali smo je u _asteroid_ folderu. Sada u ovom fajlu možemo napisati osnovn
 class_name Asteroid
 extends Node2D
 
-signal point_gained
-
 var speed = 100 # brzina kretanja
 
 # funkcija koja se izvrsava ponovo za svaki frame
@@ -182,9 +180,24 @@ func _process(delta):
 	# pomeraj po Y osi koji zavisi od brzine i delta-e
 	var direction = Vector2(0, 1)
 	translate(direction * speed * delta)
+```
 
+Asteroid će se kretati po Y osi prema dnu prozora.
+
+Kada _Node_ asteroida prestane da bude vidljiv na ekranu treba ga obrisati iz igre, kako se ne bismo došli u situaciju da imamo ogroman broj asteroida koji ničemu ne služe a zauzimaju prostor u RAM-u i procesorsko vreme. Kako bismo ovo postigli dodaćemo novi _Node_ u _asteroid_ scenu: 
+
+![Scripting](img/21-visible-notifier.png)
+
+Kada _VisibleOnScreenNotifier2D_ prestane izađe van ekrana može obavestiti neki objekat o tome proko mehanizma _signal_-a. Signal je poesban objekat koji je kao i metode i svojstva deo objekta, u našem slučaju deo _VisibleOnScreenNotifier2D_ čvora, i koji može pozvati sve funkcije koje su se prijavile na taj signal. Prijavljivanje na signal možemo odraditi preko skripte, ali takođe to možemo definisati i u samoj sceni. Sa desne strane imamo tab _Node_ gde se nalazi lista signala koje izabrani čvor poseduje. Nas zanima signal `screen_exited` koga naš novi čvor ima, i koga će on automatski okinuti kada detektuje da je izašao van ekrana. Na sledeći način u trenutnoj sceni možemo povezati ovaj signal i funkciju koja se treba pozvati u _asteroid_ skripti:
+
+![Scripting](img/22-visible-notifier-signal.png)
+
+Ova `destroy` funkcija će automatski biti dodata u skriptu _Asteroid_ čvora koji smo izabrali, a kako bi odradila odgovarajuć posao, tj. uništila asteroid, doradićemo funkciju na sledeći način:
+
+```gdscript
 func destroy():
 	queue_free() # iniciranje brisanja ovog objekta
+```
 
 ## Upravljanje brodom
 
