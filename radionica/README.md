@@ -1,4 +1,4 @@
-# Radionica - _Space Shooter_ igrica u Godot-u __(WORK IN PROGRESS)__
+# Radionica - _Space Shooter_ igrica u Godot-u
 
 Za praćenje radionice potrebno je osnovno poznavanje koncepata objektno-orjentisanog programiranja.
 
