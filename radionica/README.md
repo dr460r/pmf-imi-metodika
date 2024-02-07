@@ -1,5 +1,7 @@
 # Radionica - _Space Shooter_ igrica u Godot-u __(WORK IN PROGRESS)__
 
+Za praćenje radionice potrebno je osnovno poznavanje koncepata objektno-orjentisanog programiranja.
+
 ## Preuzimanje Godot-a
 
 _Godot_ možemo preuzeti sa zvaničnog sajta [godotengine.org](https://godotengine.org/). Program zauzima svega nekoliko desetina megabajta.
@@ -238,5 +240,235 @@ func _unhandled_input(event):
 
 ```
 
+Za sada se raketa ne pomera, samo se pojavi u igri iznad broda. Zato ćemo kreirati skriptu za raketu i na isti način kako konstantno pomeramo asteroid na dole tako ćemo i raketu na gore:
+
+```gdscript
+class_name Rocket
+extends Node2D
+
+var speed = 250
+
+func _process(delta):
+	var direction = Vector2(0, -1)
+	translate(direction * speed * delta)
+```
+
 ## Kolizije
 
+Sledeća bitna funkcionalnost svakog od glavnih elemenata igre je detakcija kolozije. U našem slučaju treba da detektujemo samo dva slučaja:
+- Kolizija između asteroida i rakete
+- Kolizija između asteroida i broda
+
+Kao i sve ostalo, ovaj deo možemo realizovati na više načina. Sobzirom da je u oba slučaja kolizije _asteroid_ učesnik kod koji se kolizija tiče možemo smestiti u skriptu asteroida. Ali, da bismo uopšte mogli da detektujemo koliziije potrebno je da dodamo par čvorova u scene ovih objekata.
+
+Počećemo od asteroida. Dodaćemo _Area2D_ čvor koji može okinuti određeni signal kada detektuje koliziju sa drugim čvorovima koji služe za istu detekciju. Ovom čvoru je za funkcionisanje potreban _child_ node koji definiše oblik za koliziju sa drugim oblicima, te ćemo dodati ugnježden _CollisionShape2D_ čvor:
+
+![Collision](img/23-collision-shape-resource-01.png)
+
+Možemo videti obaveštenje da je ovom čvoru potreno definisati konkretan oblik kako bi mogao da funkcioniše i služi svom _parent_ _Area2D_ čvoru. Informacije o tom obliku, tj. resurs, možemo ugraditi direktno u sam fajl scene, bez potrebe da ga definišemo kao poseban resurs fajl u fajlovima projekta:
+
+![Collision](img/23-collision-shape-resource-02.png)
+
+![Collision](img/23-collision-shape-resource-03.png)
+
+Isto ovo ćemo odraditi za raketu i brod:
+
+![Collision](img/23-collision-shape-resource-04.png)
+
+![Collision](img/23-collision-shape-resource-05.png)
+
+### Kod za detekciju kolizije
+
+Kako bismo izvršili kod u asteroid objektu koji reaguje na kolizije potrebno je da povežemo funkciju iz asteroida sa signalom njegovog _Area2D_ kolajdera. Funkciju ćemo nazvati `on_collision` i povezati je sa signalom `area_entered`:
+
+![Collision](img/23-collision-shape-resource-06.png)
+
+Funkcija treba da primi jedan parametar koji će joj signal poslati, i to tipa _Area2D_, koj predstavlja referencu na neki drugi kolajder ovog tipa sa kojim se kolajder koji je okinuo signal preklopio. Pored ove funkcije u skriptu asteroida ćemo dodati i sopstveni signal koji ćemo okinuti kada raketa uništi asteroid pa igrač treba da dobije poen:
+
+```gdscript
+signal point_gained # okida se kada je potrebno da igrač dobije poen zbog uništenja asteroida
+
+signal point_gained # okida se kada je potrebno da igrač dobije poen zbog uništenja asteroida
+func on_collision(area: Area2D):
+	var target = area.get_parent() # uzimamo vlasnika HitBox-a sa kojm se asteroid sudario
+	# ukoliko raketa pogodila asteroid treba unistiti oba objekta i emitovati signal
+	if target is Rocket:
+		target.destroy()
+		destroy()
+		point_gained.emit()
+	# ukoliko je asteroid udario brod onda ga treba unistiti
+	elif target is Ship:
+		target.destroy()
+```
+
+Vidimo da se ovde pozivaju `destory` funkcije objekata _Ship_ i _Rocket_, ali njih još uvek nismo definisali. Za raketu je jednostavno, biće isot kao i za asteroid:
+
+```gdscript
+func destroy():
+	queue_free()
+```
+
+Za brod ćemo pored ovog brisanja okinuti i signal koji ćemo dakođe definisati u _ship_ skripti:
+
+```gdscript
+signal destroyed
+
+func destroy():
+	destroyed.emit()
+	queue_free()
+```
+
+Ovaj signal nam je potreban kako bismo javili _level_ čvoru da treba da prekine igru i omogući nam da je pokrenemo ponovo.
+
+## Level skripta
+
+Pored upravljanja početkom i završetkom igre, _level_ čvor će biti zadužen i za stvaranje novih asteroida koji će padati ka igraču i biti uništeni na dnu prozora, kao i za praćenje ostvarenih poena igrača.
+
+### Asteroid Spawner
+
+Prvo ćemo kreirati _level_ skriptu i zakačiti je na _root_ čvor _level_ scene. Rakođe u istu scenu ćemo dodati _Timer_ _Node_ koji će služiti da na određen fiksan vremenski interval okine signal koji će pozvati odgovarajuću metodu za stvaranje novog asteroida. Na taj način možemo konstantno dobijati nove asteroide u igri koji će dalje obavljati svoja zaduženja.
+
+![Timer](img/19-add-timer-01.png)
+
+![Timer](img/19-add-timer-02.png)
+
+![Timer](img/20-signal-timeout-1.png)
+
+![Timer](img/20-signal-timeout-4.png)
+
+Slično kao i za ispaljivanje raketa, logiku za stvaranje novih asteroida možemo kreirati na sledeći način:
+
+```gdscript
+extends Node2D
+
+var asteroid_scene = preload("res://asteroid/asteroid.tscn")
+
+func start():
+	# start asteroid spawn timer
+	$AsteroidTimer.start()
+	
+func end():
+	started = false
+	$AsteroidTimer.stop() # zaustavljamo tajmer za kreiranje asteroida
+	$StartLabel.visible = true # prikazujemo start label
+
+func spawn_asteroid():
+	var asteroid = asteroid_scene.instantiate()
+    # nasumična pozicija na x osi odvojena od ivica minimum 20px
+	asteroid.position = Vector2(randi() % 160 + 20, -20)
+	asteroid.point_gained.connect(add_score)
+	add_child(asteroid)
+```
+
+### Game Loop
+
+Sada, kako bismo realizovali upravljanje početkom i završetkom igre, potrebno je da se povežemo signal `destroyed` iz _ship_ čvora. Takođe, kada igra počne, treba da instanciramo brod, jer će na završetku igre biti uništen:
+
+```gdscript
+var ship_scene = preload("res://ship/ship.tscn")
+var started = false
+
+func start():
+	started = true
+	# kreiramo brod, postavljamo ga na pocetnu poziciju i povezujemo signal
+	var ship = ship_scene.instantiate()
+	ship.position = Vector2(100, 270)
+	ship.destroyed.connect(end)
+	add_child(ship)
+	# start asteroid spawn timer
+	$AsteroidTimer.start()
+	
+func end():
+	started = false
+	$AsteroidTimer.stop() # zaustavljamo tajmer za kreiranje asteroida
+
+func spawn_asteroid():
+	var asteroid = asteroid_scene.instantiate()
+    asteroid.point_gained.connect(add_score)
+	# nasumična pozicija na x osi odvojena od ivica minimum 20px
+	asteroid.position = Vector2(randi() % 160 + 20, -20) 
+	add_child(asteroid)
+
+func _unhandled_input(event):
+	if not started and Input.is_action_pressed("ui_accept"):
+		start()
+```
+
+### Score, UI i završne dorade
+
+Ostalo je još da realizujemo praćenje poena i njihovo prikazivanje na ekranu, kao i prikazivanje teksta koji nam govori kako da pokrenemo igru. Takođe dodaćemo i igre koja izgleda kao svemir.
+
+![Final Changes](img/24-background.png)
+
+![Final Changes](img/25-labels.png)
+
+Poene povećavamo kada uhvatimo signal asteroida koji govori da ga je uništila raketa, tj. signal `point_gained` iz _asteroid_ čvora. Kako bismo promenili tekst u _Label_ čvoru koji smo nazvali _ScoreLabel_ potrebno je da mu pristupimo iz skripte. Pomoću znaka `$` možemo pristupiti _child_ čvorovima nekog _Node_-a po samom imenu čvora. Sledećim izmenama _label.gd_ skripte dodajemo ove funkcionalnosti:
+
+```gdscript
+extends Node2D
+
+var asteroid_scene = preload("res://asteroid/asteroid.tscn")
+var ship_scene = preload("res://ship/ship.tscn")
+var score = 0 # <<<===========
+var started = false
+
+func start():
+	started = true
+	# resetujemo score na 0
+	set_score(0) # <<<===========
+	# sakrivamo start label
+	$StartLabel.visible = false # <<<===========
+	# kreiramo brod, postavljamo ga na pocetnu poziciju i povezujemo signal
+	var ship = ship_scene.instantiate()
+	ship.position = Vector2(100, 270)
+	ship.destroyed.connect(end) # <<<===========
+	add_child(ship)
+	# start asteroid spawn timer
+	$AsteroidTimer.start()
+	
+func end():
+	started = false
+	$AsteroidTimer.stop() # zaustavljamo tajmer za kreiranje asteroida
+	$StartLabel.visible = true # prikazujemo start label # <<<===========
+	
+func add_score(): # <<<===========
+	set_score(score + 1)
+	
+func set_score(value): # <<<===========
+	score = value
+	$ScoreLabel.text = "Score: " + str(score)
+
+func spawn_asteroid():
+	var asteroid = asteroid_scene.instantiate()
+	asteroid.point_gained.connect(add_score) # <<<===========
+	# nasumična pozicija na x osi odvojena od ivica minimum 20px
+	asteroid.position = Vector2(randi() % 160 + 20, -20) 
+	add_child(asteroid)
+```
+
+Ovim izmenama smo završili kreiranje jednostavne _Space Shooter_ igrice i stigli do kraja ovog kursa. Korisni linkovi ka materijalim za dalje učenje o _Godot_-u kao i materijali korišćeni u ovom projektu se nalaze u linkovima ispod.
+
+## Linkovi
+
+Slike korišćene na kursu su iz sledećih kolekcija:
+- [foozlecc.itch.io/void-fleet-pack-1](https://foozlecc.itch.io/void-fleet-pack-1)
+- [foozlecc.itch.io/void-environment-pack](https://foozlecc.itch.io/void-environment-pack)
+- [foozlecc.itch.io/void-main-ship](https://foozlecc.itch.io/void-main-ship)
+- [github.com/uheartbeast/Galaxy-Defiance](https://github.com/uheartbeast/Galaxy-Defiance)
+
+Godot dokumentaijca:
+- [Godot Docs](https://docs.godotengine.org)
+- [Godot Docs: Best Practices](https://docs.godotengine.org/en/stable/tutorials/best_practices/)
+
+YouTube kanali:
+- [youtube.com/@uheartbeast](https://www.youtube.com/@uheartbeast)
+- [youtube.com/@TheShaggyDev](https://www.youtube.com/@TheShaggyDev)
+- [youtube.com/@mrelipteach](https://www.youtube.com/@mrelipteach)
+- [youtube.com/@gamedevaki](https://www.youtube.com/@gamedevaki)
+- [youtube.com/@Chaff_Games](https://www.youtube.com/@Chaff_Games)
+- [youtube.com/@GameDevArtisan](https://www.youtube.com/@GameDevArtisan)
+- [youtube.com/@godotneers](https://www.youtube.com/@godotneers)
+
+Ostalo:
+- [shaggydev.com](https://shaggydev.com)
+- [Godot: Writting Clean Code (YouTube)](https://youtu.be/6QGCbGEvqyE?si=7i5c4tReZCP2PqLY)
