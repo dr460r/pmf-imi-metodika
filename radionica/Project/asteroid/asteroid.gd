@@ -1,7 +1,7 @@
 class_name Asteroid
 extends Node2D
 
-signal point_gained
+signal point_gained # okida se kada je potrebno da igrač dobije poen zbog uništenja asteroida
 
 var speed = 100 # brzina kretanja
 

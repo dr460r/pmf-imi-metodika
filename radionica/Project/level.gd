@@ -33,11 +33,12 @@ func set_score(value):
 
 func spawn_asteroid():
 	var asteroid = asteroid_scene.instantiate()
-	asteroid.position = Vector2(randi() % 160 + 20, -20)
 	asteroid.point_gained.connect(add_score)
+	# nasumična pozicija na x osi odvojena od ivica minimum 20px
+	asteroid.position = Vector2(randi() % 160 + 20, -20) 
 	add_child(asteroid)
 
 func _unhandled_input(event):
 	if not started and Input.is_action_pressed("ui_accept"):
 		start()
-	
+
